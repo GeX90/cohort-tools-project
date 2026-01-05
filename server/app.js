@@ -1,6 +1,10 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const cohorts = require("./cohorts.json")
+const students = require("./students.json")
+const cors = require("cors")
+
 const PORT = 5005;
 
 // STATIC DATA
@@ -20,6 +24,11 @@ app.use(morgan("dev"));
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: ['http://localhost:5173'],
+  })
+);
 
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
@@ -27,6 +36,14 @@ app.use(cookieParser());
 // ...
 app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
+});
+
+app.get("/api/cohorts", (req, res) => {
+  res.json(cohorts)
+});
+
+app.get("/api/students", (req, res) => {
+  res.json(students)
 });
 
 
