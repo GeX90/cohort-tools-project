@@ -15,14 +15,14 @@ const studentschema = new Schema({
     background: { type: String, },
     image: { type: String, default: "https://i.imgur.com/r8bo8u7.png" },
     cohort:  { type: Schema.Types.ObjectId, ref: "Cohort" },
-    projects: { type: Array }
+    projects: { type: [] }
 });
  
 // CREATE MODEL
 // The model() method defines a model (Book) and creates a collection (books) in MongoDB
 // The collection name will default to the lowercased, plural form of the model name:
 //                          "Book" --> "books"
-const student = mongoose.model("student", studentschema);
+const Student = mongoose.model("student", studentschema);
  
 // EXPORT THE MODEL
-module.exports = student;
+module.exports = Student;

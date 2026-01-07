@@ -1,11 +1,12 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const cohorts = require("./cohorts.json")
-const students = require("./students.json")
 const cors = require("cors")
 const mongoose = require("mongoose");
- 
+const Student = require("./models/studentModels");
+const Cohort = require("./models/cohortModels");
+
+
 mongoose
   .connect("mongodb://127.0.0.1:27017/cohort-tools-project")
   .then(x => console.log(`Connected to Database: "${x.connections[0].name}"`))
@@ -43,14 +44,160 @@ app.use(
 app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
-
+//COHORTS ROUTES
 app.get("/api/cohorts", (req, res) => {
-  res.json(cohorts)
+
+  Cohort.find()
+    .then((cohorts) => {
+
+      res.json(cohorts)
+    })
+    .catch((err) => {
+      console.log("Error getting cohorts", err);
+      res.status(500).json({ error: "Error getting cohorts" })
+
+    })
+
 });
 
+app.post(`/api/cohorts`, (req, res, next) => {
+  const newCohort = req.body
+
+  Cohort.create(newCohort)
+    .then((cohortFromDB) => {
+      res.status(201).json(cohortFromDB)
+    })
+    .catch((err) => {
+      console.log("Error create new Cohort", err)
+      res.status(500).json({ error: "Error create new Cohort" })
+    })
+})
+
+app.get(`/api/cohorts/:cohortId`, (req, res, next) => {
+  const { cohortId } = req.params
+
+  Cohort.findById(cohortId)
+    .then((cohortFromDB) => {
+      res.json(cohortFromDB)
+    })
+    .catch((err) => {
+      console.log("Error getting cohort ID from DB", err)
+      res.status(500).json({ error: "Error getting cohort ID from DB" })
+    })
+})
+
+app.put(`/api/cohorts/:cohortId`, (req, res, next) => {
+  const { cohortId } = req.params
+  const newcohort = req.body
+
+  Cohort.findByIdAndUpdate(cohortId, newcohort, { new: true })
+    .then((cohortFromDB) => {
+      res.json(cohortFromDB)
+    })
+    .catch((err) => {
+      console.log("Error updating cohort ID from DB", err)
+      res.status(500).json({ error: "Error updating cohort ID from DB" })
+    })
+})
+
+app.delete(`/api/cohorts/:cohortId`, (req, res, next) => {
+  const { cohortId } = req.params
+
+  Cohort.findByIdAndDelete(cohortId)
+    .then((response) => {
+      res.json(response)
+    })
+    .catch((err) => {
+      console.log("Error deleting cohort ID from DB", err)
+      res.status(500).json({ error: "Error deleting cohort ID from DB" })
+    })
+})
+
+//STUDENTS ROUTES
 app.get("/api/students", (req, res) => {
-  res.json(students)
+
+  Student.find()
+    .populate("Cohort")
+    .then((students) => {
+
+      res.json(students)
+    })
+    .catch((err) => {
+      console.log("Error getting students", err);
+      res.status(500).json({ error: "Error getting students" })
+
+    })
+
 });
+
+app.post(`/api/students`, (req, res, next) => {
+  const newStudent = req.body
+
+  Student.create(newStudent)
+    .then((studentFromDB) => {
+      res.status(201).json(studentFromDB)
+    })
+    .catch((err) => {
+      console.log("Error create new Student", err)
+      res.status(500).json({ error: "Error create new Student" })
+    })
+})
+
+app.get(`/api/students/cohort/:cohortId`, (req, res, next) => {
+  const { cohortId } = req.params
+
+  Cohort.findeById(cohortId)
+    .populate("Cohort")
+    .then((cohortFromDB) => {
+      res.json(cohortFromDB)
+    })
+    .catch((err) => {
+      console.log("Error getting cohort ID from DB", err)
+      res.status(500).json({ error: "Error getting cohort ID from DB" })
+    })
+})
+
+app.get(`/api/students/:studentId`, (req, res, next) => {
+  const { studentId } = req.params
+
+  Student.findById(studentId)
+    .populate("Cohort")
+    .then((studentFromDB) => {
+      res.json(studentFromDB)
+    })
+    .catch((err) => {
+      console.log("Error getting student ID from DB", err)
+      res.status(500).json({ error: "Error getting student ID from DB" })
+    })
+})
+
+app.put(`/api/students/:studentId`, (req, res, next) => {
+  const { studentId } = req.params
+  const newStudent = req.body
+
+  Student.findByIdAndUpdate(studentId, newStudent, { new: true })
+    .then((studentFromDB) => {
+      res.json(studentFromDB)
+    })
+    .catch((err) => {
+      console.log("Error updating student ID from DB", err)
+      res.status(500).json({ error: "Error updating student ID from DB" })
+    })
+})
+
+app.delete(`/api/students/:studentId`, (req, res, next) => {
+  const { studentId } = req.params
+
+  Student.findByIdAndDelete(studentId)
+    .then((response) => {
+      res.json(response)
+    })
+    .catch((err) => {
+      console.log("Error deleting student ID from DB", err)
+      res.status(500).json({ error: "Error deleting student ID from DB" })
+    })
+})
+
 
 
 // START SERVER

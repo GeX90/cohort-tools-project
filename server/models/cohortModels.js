@@ -13,8 +13,8 @@ const cohortSchema = new Schema({
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date },
   inProgress: { type: Boolean, default: false },
-  programManager: {type: String, required:tmongoose.rusted},
-  leadTeacher: {type: String, required:trusted},
+  programManager: {type: String, required:mongoose.rusted},
+  leadTeacher: {type: String, required:mongoose.rusted},
   totalHours: {type: Number, default:360}
 });
  
