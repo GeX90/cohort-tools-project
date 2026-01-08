@@ -117,7 +117,7 @@ app.delete(`/api/cohorts/:cohortId`, (req, res, next) => {
 app.get("/api/students", (req, res) => {
 
   Student.find()
-    .populate("Cohort")
+    .populate("cohort")
     .then((students) => {
 
       res.json(students)
