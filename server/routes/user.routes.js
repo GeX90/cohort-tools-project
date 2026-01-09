@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User.model");
+const User = require("../models/UserModels");
+const { isAuthenticated } = require("../midleware/jwt.midleware");
 
 // GET /api/users/:id
-router.get('/:id', (req, res, next) => {
+router.get('/api/users/:id', isAuthenticated, (req, res, next) => {
     const { id } = req.params;
 
     User.findById(id)

@@ -1,3 +1,4 @@
+require("dotenv/config");
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -31,6 +32,7 @@ app.get("/docs", (req, res) => {
 app.use("/", require("./routes/cohort.routes"))
 app.use("/", require("./routes/students.routes"))
 app.use("/auth", require("./routes/auth.routes"))
+app.use("/", require("./routes/user.routes"))
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

@@ -1,8 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const router = express.Router();
-const User = require("../models/User.model");
+const User = require("../models/UserModels");
+const jwt = require("jsonwebtoken");
+const { isAuthenticated } = require("../midleware/jwt.midleware");
 const saltRounds = 10;
+
+
 // POST /auth/signup
 router.post('/signup', (req, res, next) => {
     const { email, password, name } = req.body;
@@ -60,38 +64,60 @@ router.post('/signup', (req, res, next) => {
 
 // POST /auth/login
 router.post('/login', (req, res, next) => {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
-        res.status(400).json({ message: "Provide email and password" });
+  const { email, password } = req.body;
+
+  // Check if email or password are provided as empty string 
+  if (!email || !password) {
+    res.status(400).json({ message: "Provide email and password." });
+    return;
+  }
+
+  // Check the users collection if a user with the same email exists
+  User.findOne({ email })
+    .then((foundUser) => {
+
+      if (!foundUser) {
+        // If the user is not found, send an error response
+        res.status(401).json({ message: "User not found." })
         return;
-    }
+      }
 
-    User.findOne({ email })
-        .then((foundUser) => {
-            if (!foundUser) {
-                res.status(401).json({ message: "User not found." });
-                return;
-            }
+      // Compare the provided password with the one saved in the database
+      const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
 
-            const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
+      if (passwordCorrect) {
 
-            if (passwordCorrect) {
-                const { email, name, _id } = foundUser;
-                const user = { email, name, _id };
-                res.status(200).json({ message: "Login successful", user: user });
-            } else {
-                res.status(401).json({ message: "Incorrect password." });
-            }
-        })
-        .catch(err => {
-            console.log("Error trying to login...\n\n", err);
-            res.status(500).json({ message: "Internal Server Error" })
-        });
+        // Deconstruct the user object to omit the password
+        const { _id, email, name } = foundUser;
+
+        // Create an object that will be set as the token payload
+        const payload = { _id, email, name };
+        
+
+        // Create and sign the token
+        const authToken = jwt.sign(
+          payload,
+          process.env.TOKEN_SECRET,
+          { algorithm: 'HS256', expiresIn: "6h" }
+        );
+
+        // Send the token as the response
+        res.json({ authToken: authToken });
+      }
+      else {
+        res.status(401).json({ message: "Unable to authenticate the user" });
+        return;
+      }
+    })
+    .catch(err => {
+      console.log("Error trying to login...\n\n", err);
+      res.status(500).json({ message: "Internal Server Error" })
+    });
 });
 
 // GET /auth/verify
-router.get('/verify', (req, res, next) => {
+router.get('/verify', isAuthenticated, (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
