@@ -29,9 +29,10 @@ app.get("/docs", (req, res) => {
 });
 
 app.use("/", require("./routes/cohort.routes"))
-app.use("/", require("./routes/student.routes"))
-
+app.use("/", require("./routes/students.routes"))
+app.use("/auth", require("./routes/auth.routes"))
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
